@@ -21,7 +21,7 @@ bool invert = false;
 #include <SPI.h>
 #include <SD.h>
 
-String diskSel = "C:";
+String diskSel = "C";
 
 const String rootDir = "/";                 //Root directory (EXPERIMENTAL)
 const String sysDir = rootDir + "/SYSTEM";  //System directory (EXPERIMENTAL)
@@ -31,8 +31,7 @@ uint8_t ramSize = 16;                       //Extended memory file size in KB (E
 
 const String setFile = sysDir + "/SET.SYS";  //Settings file (EXPERIMENTAL)
 
-File currentDir;
-String currentPath;
+String currentPath = rootDir; //Default starting dir
 
 const uint8_t regSize = 2;  //In bytes
 
@@ -94,9 +93,6 @@ bool found;            //Compiler checks if the instruction exists //Public for 
 void setup() {
   on = true;  //Booted OS
   Serial.begin(9600);
-
-  currentDir = openFile("SYSTEM");
-  currentPath = diskSel + currentDir.name();
 
   uint16_t ID = tft.readID();
   if (ID) {

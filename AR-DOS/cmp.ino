@@ -57,6 +57,10 @@ void cmp(String name, String extension) {
             inputFrag[0] = String(inputFrag[i].length(), 16);  //Salva la lunghezza della stinga
             printHex(fileSel, 0);                              //Scrive la lunghezza della stringa
 
+            inputFrag[i].replace('\\', '\n');
+            fileSel.print(inputFrag[i]);
+            
+            /* Replaced by the two lines above (maybe)
             for (uint16_t j = 0; j < inputFrag[i].length(); j++) {
               switch (char currentChar = inputFrag[i].charAt(j)) {
                 default:
@@ -67,6 +71,7 @@ void cmp(String name, String extension) {
                   break;
               }
             }
+            */
 
             break;  //ne ha trovato 1, lascia stare il resto (un istruzione puo utilizzare una risorsa alla volta)
 

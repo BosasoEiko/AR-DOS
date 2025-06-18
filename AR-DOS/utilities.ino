@@ -6,7 +6,7 @@ void frag(uint8_t par) {
   for (uint8_t parCurrent = 0; parCurrent < par; parCurrent++) inputFrag[parCurrent] = "";
   for (uint8_t parCurrent = 0; parCurrent < par; parCurrent++) {
     bool withSpace = false;
-    if (parCurrent != 0) charCount++;  //skip the space
+    if (parCurrent != 0) charCount++;  //Skips the space
     while (inputSaved.charAt(charCount) != ' ' && !withSpace && charCount < inputSaved.length()) {
       if (inputSaved.charAt(charCount) == '"' && !withSpace) {
         charCount++;
@@ -66,7 +66,7 @@ void error(int8_t type, String name, String file, bool ln) {
   }
 }
 
-void scroll() {  //Need to fix a lot of bugs
+void scroll() {  //Need to fix a lot of bugs //Add different modes of scroll
   int16_t cursorY = tft.getCursorY();
 
   tft.setTextColor(colorText);

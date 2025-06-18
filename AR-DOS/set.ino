@@ -1,4 +1,4 @@
-void set(String setting, String par2) {
+void set(String setting, String par2) { //Not working correctly
   char currentChar;
   int currentPos;
 

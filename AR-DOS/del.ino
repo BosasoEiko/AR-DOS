@@ -1,4 +1,5 @@
 void del(String fileSel) {
+  fileSel = currentPath + "/" + fileSel;
   if (existsFile(fileSel)) {
     error(0, F("Deleting"), fileSel, true);
     removeFile(fileSel);

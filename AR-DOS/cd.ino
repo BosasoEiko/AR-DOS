@@ -1,41 +1,23 @@
-void cd(String dirSelPar) {
-  File entry;
-  String dirSel;
-  dirSelPar.toUpperCase();
-  
-  switch (dirSelPar.charAt(1)) {
-
+void cd(String dir) {
+  File file;
+  dir.replace('\\', '/');  //Replaces slashes
+  switch (dir.charAt(0)) { //Checks what action sould it do
     default:
-      if (currentDir.name() == "/") currentPath = String(currentDir.name()) + dirSelPar;
-      else currentPath = String(currentDir.name()) + String('/') + dirSelPar;
-      entry = openFile(dirSel);
-      if (entry.isDirectory()) {
-        currentDir = entry;
-        currentPath += currentDir.name();
-      } else {
-        print('\"', false);
-        print(diskSel, false);
-        print(':', false);
-        printDir(dirSelPar);
-        print(F("\" is not a valid directory."), false);
+      file = openFile(currentPath + "/" + dir);
+      if (file.isDirectory()) {
+        currentPath += "/" + String(file.name());
       }
       break;
-
-    case ':':
-      dirSel = dirSelPar.substring(2);
-      entry = openFile(dirSel);
-      if (entry.isDirectory()) {
-        currentDir = entry;
-        currentPath += currentDir.name();
-      } else {
-        print('\"', false);
-        printDir(dirSelPar);
-        print(F("\" is not a valid directory."), false);
+    case '/':
+      file = openFile(dir);
+      if (file.isDirectory()) {
+        currentPath = dir;
       }
       break;
-      /* DA FARE ANCORA
     case '.':
+      while (!currentPath.endsWith("/")) currentPath.remove(currentPath.length() - 1);  //Removes the last folder
+      if (currentPath != rootDir) currentPath.remove(currentPath.length() - 1);         //Removes also the slash, only when it's not the root
       break;
-    */
   }
+  file.close();
 }

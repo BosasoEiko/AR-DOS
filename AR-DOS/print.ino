@@ -49,8 +49,10 @@ void printChar(char data) {
 void printDir(String data) {
   for (int charCount = 0; charCount < data.length(); charCount++) {
     char currentChar = data.charAt(charCount);
-    if (currentChar == '/') print('\\', false);
-    else print(currentChar, false);
+    if (currentChar == '/') {
+      while (data.charAt(charCount + 1) == '/') charCount++;  //Ignores any other slash (the SD lib already does that)
+      print('\\', false);                                     //To match MS-DOS
+    } else print(currentChar, false);
   }
 }
 

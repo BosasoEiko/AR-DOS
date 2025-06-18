@@ -3,10 +3,8 @@ bool loadedGui = false;
 void cmd() {
   if (loadedGui) {
 
-    print(sysDir, true);
-    print(currentDir.name(), true);
-    print(currentPath, false);
-    
+    print(diskSel + ":", false);
+    printDir(currentPath);
     print(F(">"), false);
 
     bool enter = false;
@@ -120,6 +118,9 @@ void cmd() {
         inputSaved = Serial.readString();
         inputSaved.trim();
         bg = true;  //YAY Fixed the cursor bug
+        print(keyCurrent, false);
+        tft.setCursor(tft.getCursorX() - 6, tft.getCursorY());
+        bg = false;
         print(inputSaved, false);
         enter = true;
       }
@@ -163,8 +164,8 @@ void cmd() {
 
     if (inputFrag[0] == "CMD") cmd();
     else if (inputFrag[0] == "CMP") cmp(inputFrag[1], inputFrag[2]);
-    else if (inputFrag[0] == "RUN") run(inputFrag[1]);
     else if (inputFrag[0] == "CD") cd(inputFrag[1]);
+    else if (inputFrag[0] == "RUN") run(inputFrag[1]);
     else if (inputFrag[0] == "MAKE") make(inputFrag[1]);
     else if (inputFrag[0] == "EDIT") edit(inputFrag[1], inputFrag[2]);
     else if (inputFrag[0] == "READ") read(inputFrag[1]);
@@ -174,7 +175,6 @@ void cmd() {
     else if (inputFrag[0] == "ECHO") echo(inputFrag[1]);
     else if (inputFrag[0] == "SET") set(inputFrag[1], inputFrag[2]);
     else if (inputFrag[0] == "DBG") dbg();
-    else if (inputFrag[0] == "SCR") scroll();
     else if (inputFrag[0] == "EXIT") exit();
     else if (inputFrag[0] == "")
       ;
