@@ -1,10 +1,8 @@
-void del(String par1) {
-  const char* fileSel = par1.c_str();
-
-  if (SD.exists(fileSel)) {
+void del(String fileSel) {
+  if (existsFile(fileSel)) {
     error(0, F("Deleting"), fileSel, true);
-    SD.remove(fileSel);
-    if (SD.exists(fileSel)) {
+    removeFile(fileSel);
+    if (existsFile(fileSel)) {
       error(2, F("delete"), fileSel, false);
       return;
     }

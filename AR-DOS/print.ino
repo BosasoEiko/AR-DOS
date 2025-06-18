@@ -1,3 +1,5 @@
+//NOTE: Put background bool as a parameter (maybe also inverted)
+
 void print(String data, bool ln) {
   for (int charCount = 0; charCount < data.length(); charCount++) printChar(data.charAt(charCount));
   if (ln) print(true);

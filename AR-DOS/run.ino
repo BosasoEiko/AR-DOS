@@ -1,6 +1,6 @@
 void run(String filePar) {
-  File file = SD.open(filePar.c_str(), O_READ);
-  File ram = SD.open("RAM.SYS", FILE_WRITE);
+  File file = openFile(filePar, O_READ);
+  File ram = openFile(ramFile, FILE_WRITE);
   for (uint16_t i = 0; i < 16384; i++) ram.print(char(0)); //Resetta la ram
   ram.seek(0);
   file.seek(1);

@@ -1,10 +1,8 @@
-void make(String par1) {
-  const char* fileSel = par1.c_str();
-
-  if (!SD.exists(fileSel)) {
+void make(String fileSel) {
+  if (!existsFile(fileSel)) {
 
     error(0, F("Making"), fileSel, true);
-    File file = SD.open(fileSel, FILE_WRITE);
+    File file = openFile(fileSel, FILE_WRITE);
 
     if (!file) {
       error(2, F("make"), fileSel, false);

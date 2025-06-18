@@ -3,7 +3,7 @@ void set(String setting, String par2) {
   int currentPos;
 
   if (!loadedGui) {
-    File settings = SD.open("SET.SYS", O_READ);
+    File settings = openFile(setFile, O_READ);
     while (settings.available()) {
       inputSaved = "";
 
@@ -18,15 +18,15 @@ void set(String setting, String par2) {
     settings.close();
   } else {
     if (setting == "reset") {
-      del("SET.SYS");
+      del(setFile);
       print(true);
-      make("SET.SYS");
+      make(setFile);
       print(true);
-      edit("SET.SYS", "audioHz 2000\ntest testing\nCLS 1\ntest2 testing2");
+      edit(setFile, "audioHz 2000\ntest testing\nCLS 1\ntest2 testing2");
       return;
     }
 
-    File settings = SD.open("SET.SYS", FILE_WRITE);
+    File settings = openFile(setFile, FILE_WRITE);
     error(0, F("Searching"), setting, true);
 
     while (settings.available()) {

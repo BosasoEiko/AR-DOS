@@ -10,9 +10,9 @@ Elegoo_TFTLCD tft(A3, A2, A1, A0, A4);
 int colorText = WHITE;
 int colorBack = BLACK;
 
-const uint8_t charX = 52;                 //contando lo 0
-const uint8_t charY = 29;                 //contando lo 0
-char screenBuffer[charX + 1][charY + 1];  //perche la definizione non conta lo 0
+const uint8_t charX = 52;                 //Counting the 0
+const uint8_t charY = 29;                 //Counting the 0
+char screenBuffer[charX + 1][charY + 1];  //Definition doesn't count the 0, so add 1
 bool bg = false;
 bool invert = false;
 
@@ -21,12 +21,18 @@ bool invert = false;
 #include <SPI.h>
 #include <SD.h>
 
-uint8_t diskPin[4] = { 10, 11, 12, 13 };  //SS, DI, DO, CLK
-char diskSel = 'A';
+String diskSel = "C:";
 
-File root = SD.open("/");
-File currentDir = root;
-String currentPath = String(diskSel) + String(':') + String(currentDir.name());
+const String rootDir = "/";                 //Root directory (EXPERIMENTAL)
+const String sysDir = rootDir + "/SYSTEM";  //System directory (EXPERIMENTAL)
+
+const String ramFile = sysDir + "/RAM.SYS";  //Extended memory file (EXPERIMENTAL)
+uint8_t ramSize = 16;                       //Extended memory file size in KB (EXPERIMENTAL)
+
+const String setFile = sysDir + "/SET.SYS";  //Settings file (EXPERIMENTAL)
+
+File currentDir;
+String currentPath;
 
 const uint8_t regSize = 2;  //In bytes
 
@@ -47,7 +53,7 @@ const uint8_t colPins[COLS] = { 23, 25, 27, 29 };
 
 Keypad pad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-char keyNormal[10][4] = { { ' ', ',', '.', '0' },
+char keyNormal[10][4] = { { ' ', ',', '.', '0' },  //Normal mode
                           { 'a', 'b', 'c', '1' },
                           { 'd', 'e', 'f', '2' },
                           { 'g', 'h', 'i', '3' },
@@ -58,7 +64,7 @@ char keyNormal[10][4] = { { ' ', ',', '.', '0' },
                           { 'v', 'w', 'x', '8' },
                           { 'y', 'z', '\\', '9' } };
 
-char keyShift[10][4] = { { '\\', ';', ':', '=' },
+char keyShift[10][4] = { { '\\', ';', ':', '=' },  //Shift mode
                          { 'A', 'B', 'C', '!' },
                          { 'D', 'E', 'F', '"' },
                          { 'G', 'H', 'I', '\'' },
@@ -69,46 +75,63 @@ char keyShift[10][4] = { { '\\', ';', ':', '=' },
                          { 'V', 'W', 'X', '(' },
                          { 'Y', 'Z', '?', ')' } };
 
-char keyPressed;  //Pubblica a tutte le funzioni
-
-const uint8_t parameters = 4;
-String inputSaved, inputFrag[parameters];  //Pubblica per un casino di funzioni che usano frag() e input()
+const uint8_t parameters = 4;              //Available commands parameters (Variable in future release)
+String inputSaved, inputFrag[parameters];  //Raw input from command line //Fragmented raw input in parameters
 
 //AUDIO----------------------------------------------------------------------
 
-uint8_t audioPin = 48;
+uint8_t audioPin = 50;
 uint16_t audioHz = 400;
 
-//OTHER---------------------------------------------------------------------
+//OS------------------------------------------------------------------------
 
 bool on = false;
-bool loadedGui = false;  //per vedere se è stata stampata la GUI
-bool printed = false;    //la utilizzano cmd() e printChar()
-bool found;              //Usato da cmp() e instToChar()
+bool printed = false;  //Public for cmd() and printChar()
+bool found;            //Compiler checks if the instruction exists //Public for cmp() and instToChar()
 
 //START---------------------------------------------------------------------
 
 void setup() {
-  on = true;
-  set("SET.SYS", "");  //Carica le impostazioni di sistema all'avvio
+  on = true;  //Booted OS
   Serial.begin(9600);
 
+  currentDir = openFile("SYSTEM");
+  currentPath = diskSel + currentDir.name();
+
   uint16_t ID = tft.readID();
-  tft.begin(ID);
-  cls();
-  tft.setRotation(3);
+  if (ID) {
+    tft.begin(ID);
+    tft.setRotation(3);  //Landscape mode
+    cls();
+    print(F("Found display with ID: 0x"), false);
+    print(ID, 16, true);
+  } else Serial.println(F("Cannot find display"));
 
-  print(F("Loading screen driver..."), true);
-  print(F("Loaded screen driver with ID: 0x"), false);
-  print(ID, HEX, true);
-  print(true);
+  /* Not needed, speaker pin is constant (maybe will change in the future)
+  for (audioPin = 48; audioPin <= 53; audioPin++) {  //Automatic audio port detection
+    pinMode(audioPin, INPUT_PULLUP);
+    if (!digitalRead(audioPin)) {
+      tone(audioPin, audioHz, 1000);
+      print(F("Found speaker on port: "), false);
+      print(audioPin, true);
+      break;
+    }
+    if (audioPin == 53) {
+      audioPin = -1;
+      print(F("Cannot find speaker port"), true);
+      break;
+    }
+  }
+  */
 
-  print(F("Loading audio driver..."), true);
-  pinMode(audioPin, OUTPUT);
-  tone(audioPin, audioHz, 1000);
-  print(F("Loaded audio driver connected to port: 48\n"), true);
+  pinMode(audioPin, INPUT_PULLUP);  //To check if the pin is connected to ground, aka there's a device
+  if (!digitalRead(audioPin)) {     //1 if it's not connected, 0 if it is connected, so it needs to be inverted
+    tone(audioPin, audioHz, 1000);
+    print(F("Found speaker on port: "), false);
+  } else print(F("Cannot find speaker on port: "), false);
+  print(audioPin, true);
 
-  print(F("Loading keypad driver..."), true);
+  /* Not needed, only for GUI
   print(F("Loaded keypad driver connected to ports: "), true);
   print(F("ROWS:"), false);
   for (uint8_t i = 0; i < ROWS; i++) {
@@ -121,44 +144,28 @@ void setup() {
     print(colPins[i], false);
   }
   print(F("\n"), true);
+  */
 
-  print(F("Loading disk driver..."), true);
-  if (SD.begin(diskPin[0], diskPin[1], diskPin[2], diskPin[3])) {
-    print(F("Loaded disk driver connected to ports:\nSS: "), false);
-    print(diskPin[0], false);
-    print(F(", DI: "), false);
-    print(diskPin[1], false);
-    print(F(", DO: "), false);
-    print(diskPin[2], false);
-    print(F(", CLK: "), false);
-    print(diskPin[3], true);
-  } else {
-    print(F("Cannot load disk driver connected to ports:\nSS: "), false);
-    print(diskPin[0], false);
-    print(F(", DI: "), false);
-    print(diskPin[1], false);
-    print(F(", DO: "), false);
-    print(diskPin[2], false);
-    print(F(", CLK: "), false);
-    print(diskPin[3], true);
-  }
-  print(true);
+  if (SD.begin(10, 11, 12, 13)) print(F("Found disk on port: "), false);  //SS, DI, DO, CLK
+  else print(F("Cannot find disk on port: "), false);
+  print(10, true);  //SS
 
-  print(F("Loading extended memory driver..."), true);
-  int start = millis();
-  SD.remove("RAM.SYS");
-  File ram = SD.open("RAM.SYS", FILE_WRITE);
-  for (uint16_t i = 0; i < 16384; i++) ram.print(char(0));  //16kb ram
+  int start = millis();  //Extended memory reset
+  removeFile(ramFile);
+  File ram = openFile(ramFile, FILE_WRITE);
+  for (uint32_t i = 0; i < ramSize * 1024; i++) ram.print(char(0));  //Ram file reset (fill with 0)
   int end = millis();
   if (ram) {
-    print(F("Loaded 16KB of extended memory in "), false);
+    print(F("Loaded "), false);
+    print(ramSize, false);
+    print(F("KB of extended memory in "), false);
     print(end - start, false);
-    print(F(" millis"), true);
-  }
-  else print(F("Cannot load extended memory driver"), true);
+    print(F(" ms"), true);
+  } else print(F("Cannot load extended memory driver"), true);
   ram.close();
-  set("SET.SYS", "");  //Carica le impostazioni di sistema all'avvio
-  while (on) cmd();
+
+  set(setFile, "");  //Carica le impostazioni di sistema all'avvio
+  while (on) cmd();  //Loads the command-line GUI
 }
 
 void loop() {}

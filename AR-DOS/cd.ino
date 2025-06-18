@@ -8,7 +8,7 @@ void cd(String dirSelPar) {
     default:
       if (currentDir.name() == "/") currentPath = String(currentDir.name()) + dirSelPar;
       else currentPath = String(currentDir.name()) + String('/') + dirSelPar;
-      entry = SD.open(dirSel.c_str());
+      entry = openFile(dirSel);
       if (entry.isDirectory()) {
         currentDir = entry;
         currentPath += currentDir.name();
@@ -23,7 +23,7 @@ void cd(String dirSelPar) {
 
     case ':':
       dirSel = dirSelPar.substring(2);
-      entry = SD.open(dirSel.c_str());
+      entry = openFile(dirSel);
       if (entry.isDirectory()) {
         currentDir = entry;
         currentPath += currentDir.name();

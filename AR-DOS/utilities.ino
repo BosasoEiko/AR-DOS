@@ -35,25 +35,25 @@ void error(int8_t type, String name, String file, bool ln) {
       print(name, false);
       print(F(" \""), false);
       print(file, false);
-      print(F("\"..."), ln);  //tre pallini = sta facendo un'operazione
+      print(F("\"..."), ln);  //... = Executing an operation
       break;
     case 1:
       print(name, false);
       print(F(" \""), false);
       print(file, false);
-      print(F("\"!"), ln);  //punto esclamativo = ha completato un'operazione
+      print(F("\"!"), ln);  //! = Completed an operation
       break;
     case 2:
       print(F("Can't "), false);
       print(name, false);
       print(F(" \""), false);
       print(file, false);
-      print(F("\"."), ln);  //punto = non ha completato un'operazione
+      print(F("\"."), ln);  //. = Hasn't completed an operation
       break;
     case 3:
       print(F("\""), false);
       print(file, false);
-      print(F("\" "), false);  //punto = non ha completato un'operazione
+      print(F("\" "), false);  //. = Hasn't completed an operation
       print(name, false);
       print(F("."), ln);
       break;
@@ -61,12 +61,12 @@ void error(int8_t type, String name, String file, bool ln) {
       print(name, false);
       print(F(" \""), false);
       print(file, false);
-      print(F("\"?"), ln);  //punto interrogativo = chiede conferma per completare un'operazione
+      print(F("\"?"), ln);  //? = Need confirmation for an operation
       break;
   }
 }
 
-void scroll() {
+void scroll() {  //Need to fix a lot of bugs
   int16_t cursorY = tft.getCursorY();
 
   tft.setTextColor(colorText);
@@ -131,7 +131,7 @@ String readHexFrom16(File dir, uint16_t reg) {
   dir.seek(reg * regSize);
   uint8_t char1 = dir.read();
   uint8_t char2 = dir.read();
-  return String(char1, 16) + String(char2, 16);  //Converte la prima e la seconda parte del parametro da decimale a esadecimale e le unisce
+  return String(char1, 16) + String(char2, 16);  //Converts the first and second part of the parameter from decimal to hexadecimal and merges them
 }
 
 String readHex16(File dir) {
@@ -152,4 +152,20 @@ int hextol(String hex) {
 
 String ltohex(int val) {
   return String(val, 16);
+}
+
+File openFile(String file) {
+  return SD.open(file.c_str());
+}
+
+File openFile(String file, uint8_t mode) {
+  return SD.open(file.c_str(), mode);
+}
+
+void removeFile(String file) {
+  SD.remove(file.c_str());
+}
+
+bool existsFile(String file) {
+  return SD.exists(file.c_str());
 }

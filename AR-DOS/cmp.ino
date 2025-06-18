@@ -1,9 +1,9 @@
 void cmp(String name, String extension) {
-  File fileSource = SD.open(String(name + ".ASM").c_str(), O_READ);  //Legge il file ASSEMBLY
+  File fileSource = openFile(String(name + ".ASM"), O_READ);  //Legge il file ASSEMBLY
 
   String fileSelPar = name + "." + extension;                //Prende il nome del file assembly, gli leva l'estensione e la rimpiazza con quella definita
-  SD.remove(fileSelPar.c_str());                           //Se esistente, elimina il file che sta per scrivere
-  File fileSel = SD.open(fileSelPar.c_str(), FILE_WRITE);  //Crea il file in modalita WRITE
+  removeFile(fileSelPar);                           //Se esistente, elimina il file che sta per scrivere
+  File fileSel = openFile(fileSelPar, FILE_WRITE);  //Crea il file in modalita WRITE
 
   int8_t jumpOffset = 0;
   uint16_t line = 0;
