@@ -1,6 +1,3 @@
-int16_t screenBufferCountX, screenBufferCountY;
-char screenBufferChar;
-
 void frag(uint8_t par) {
   int charCount = 0;
   for (uint8_t parCurrent = 0; parCurrent < par; parCurrent++) inputFrag[parCurrent] = "";
@@ -67,28 +64,23 @@ void error(int8_t type, String name, String file, bool ln) {
 }
 
 void scroll() {  //Need to fix a lot of bugs //Add different modes of scroll
-  int16_t cursorY = tft.getCursorY();
+  uint16_t textBufferCountX, textBufferCountY;
+  tft.setTextColor(colorText);  //No background
 
-  tft.setTextColor(colorText);
-
-  for (screenBufferCountY = 1; screenBufferCountY <= charY; screenBufferCountY++) {
-    for (screenBufferCountX = 0; screenBufferCountX <= charX; screenBufferCountX++) {
-      screenBuffer[screenBufferCountX][screenBufferCountY - 1] = screenBuffer[screenBufferCountX][screenBufferCountY];  //SHIFT BUFFER UP
-    }
+  for (textBufferCountY = 1; textBufferCountY <= charY; textBufferCountY++) {                                                                                                                   //For each line in the buffer...
+    for (textBufferCountX = 0; textBufferCountX <= charX; textBufferCountX++) textBuffer[textBufferCountX][textBufferCountY - 1] = textBuffer[textBufferCountX][textBufferCountY];  //For each char in the line, shift it one line up in the buffer
   }
 
-  for (screenBufferCountX = 0; screenBufferCountX <= charX; screenBufferCountX++) screenBuffer[screenBufferCountX][charY] = ' ';  //CLEAR LAST LINE
+  for (textBufferCountX = 0; textBufferCountX <= charX; textBufferCountX++) textBuffer[textBufferCountX][charY] = ' ';  //Clears the last line of the buffer
 
-  for (screenBufferCountY = charY; screenBufferCountY >= 0; screenBufferCountY--) {
-    tft.setCursor(0, screenBufferCountY * 8);
-    tft.fillRect(0, screenBufferCountY * 8, 320, 8, BLACK);  //CLEARS LINE TO WRITE
-    for (screenBufferCountX = 0; screenBufferCountX < charX; screenBufferCountX++) {
-      tft.print(screenBuffer[screenBufferCountX][screenBufferCountY]);  //WRITE EACH CHARACTER
-    }
+  for (textBufferCountY = charY; textBufferCountY >= 0; textBufferCountY--) {                                                                  //For each line on the screen...
+    tft.setCursor(0, textBufferCountY * 8);                                                                                                        //Set cursor at the start of the line to write
+    tft.fillRect(0, textBufferCountY * 8, 320, 8, colorBack);                                                                                      //Clears the line with the background color
+    for (textBufferCountX = 0; textBufferCountX < charX; textBufferCountX++) tft.print(textBuffer[textBufferCountX][textBufferCountY]);  //For each char in the buffer, write that char
   }
 
-  tft.setCursor(0, cursorY);  //RESETS CURSOR TO LAST POS
-  if (bg) {
+  tft.setCursor(0, 231);  //Reset cursor to bottom of the screen
+  if (bg) {               //Resets previous color settings
     if (!invert) tft.setTextColor(colorText, colorBack);
     else tft.setTextColor(colorBack, colorText);
   } else {
@@ -154,18 +146,54 @@ String ltohex(int val) {
   return String(val, 16);
 }
 
-File openFile(String file) {
+File fileOpen(String file) {
   return SD.open(file.c_str());
 }
 
-File openFile(String file, uint8_t mode) {
+File fileOpen(String file, uint8_t mode) {
   return SD.open(file.c_str(), mode);
 }
 
-void removeFile(String file) {
-  SD.remove(file.c_str());
+bool dirMake(String dir) {
+  return SD.mkdir(dir.c_str());
 }
 
-bool existsFile(String file) {
+bool dirRemove(String dir) {
+  return SD.rmdir(dir.c_str());
+}
+
+bool fileRemove(String file) {
+  return SD.remove(file.c_str());
+}
+
+bool fileExists(String file) {
   return SD.exists(file.c_str());
+}
+
+bool fileAvailable(File file) {
+  return file.available();
+}
+
+String fileRead(File file) {
+  String read;
+  while (file.available()) read += fileReadChar(file);
+  return read;
+}
+
+String fileReadLine(File file) {
+  String read;
+  char currentChar;
+  while ((currentChar = file.read()) != '\n' && file.available()) read += currentChar;  //Saves all chars until a new line
+  if (currentChar != '\n') read += currentChar;                                         //The last char is not saved, so it re-does the procedure again one time (idk why it works like that)
+  return read;
+}
+
+char fileReadChar(File file) {
+  return char(file.read());
+}
+
+String formatPath(String path) {
+  path.replace('\\', '/');  //Replaces slashes
+  path.toUpperCase();
+  return path;
 }

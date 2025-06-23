@@ -12,7 +12,7 @@ int colorBack = BLACK;
 
 const uint8_t charX = 52;                 //Counting the 0
 const uint8_t charY = 29;                 //Counting the 0
-char screenBuffer[charX + 1][charY + 1];  //Definition doesn't count the 0, so add 1
+char textBuffer[charX + 1][charY + 1];  //Definition doesn't count the 0, so add 1
 bool bg = false;
 bool invert = false;
 
@@ -21,17 +21,19 @@ bool invert = false;
 #include <SPI.h>
 #include <SD.h>
 
-String diskSel = "C";
 
-const String rootDir = "/";                 //Root directory (EXPERIMENTAL)
+const String sysDisk = "C:";  //System disk
+String diskSel = sysDisk;     //Current disk
+
+const String rootDir = sysDisk;             //Root directory (EXPERIMENTAL)
 const String sysDir = rootDir + "/SYSTEM";  //System directory (EXPERIMENTAL)
 
 const String ramFile = sysDir + "/RAM.SYS";  //Extended memory file (EXPERIMENTAL)
-uint8_t ramSize = 16;                       //Extended memory file size in KB (EXPERIMENTAL)
+uint8_t ramSize = 16;                        //Extended memory file size in KB (EXPERIMENTAL)
 
 const String setFile = sysDir + "/SET.SYS";  //Settings file (EXPERIMENTAL)
 
-String currentPath = rootDir; //Default starting dir
+String currentPath = rootDir;  //Default starting dir
 
 const uint8_t regSize = 2;  //In bytes
 
@@ -79,8 +81,8 @@ String inputSaved, inputFrag[parameters];  //Raw input from command line //Fragm
 
 //AUDIO----------------------------------------------------------------------
 
-uint8_t audioPin = 50;
-uint16_t audioHz = 400;
+uint8_t speakerPin = 50;
+uint16_t speakerHz = 400;
 
 //OS------------------------------------------------------------------------
 
@@ -104,28 +106,28 @@ void setup() {
   } else Serial.println(F("Cannot find display"));
 
   /* Not needed, speaker pin is constant (maybe will change in the future)
-  for (audioPin = 48; audioPin <= 53; audioPin++) {  //Automatic audio port detection
-    pinMode(audioPin, INPUT_PULLUP);
-    if (!digitalRead(audioPin)) {
-      tone(audioPin, audioHz, 1000);
+  for (speakerPin = 48; speakerPin <= 53; speakerPin++) {  //Automatic audio port detection
+    pinMode(speakerPin, INPUT_PULLUP);
+    if (!digitalRead(speakerPin)) {
+      tone(speakerPin, speakerHz, 1000);
       print(F("Found speaker on port: "), false);
-      print(audioPin, true);
+      print(speakerPin, true);
       break;
     }
-    if (audioPin == 53) {
-      audioPin = -1;
+    if (speakerPin == 53) {
+      speakerPin = -1;
       print(F("Cannot find speaker port"), true);
       break;
     }
   }
   */
 
-  pinMode(audioPin, INPUT_PULLUP);  //To check if the pin is connected to ground, aka there's a device
-  if (!digitalRead(audioPin)) {     //1 if it's not connected, 0 if it is connected, so it needs to be inverted
-    tone(audioPin, audioHz, 1000);
+  pinMode(speakerPin, INPUT_PULLUP);  //To check if the pin is connected to ground, aka there's a device
+  if (!digitalRead(speakerPin)) {     //1 if it's not connected, 0 if it is connected, so it needs to be inverted
+    tone(speakerPin, speakerHz, 1000);
     print(F("Found speaker on port: "), false);
   } else print(F("Cannot find speaker on port: "), false);
-  print(audioPin, true);
+  print(speakerPin, true);
 
   /* Not needed, only for GUI
   print(F("Loaded keypad driver connected to ports: "), true);
@@ -142,13 +144,15 @@ void setup() {
   print(F("\n"), true);
   */
 
-  if (SD.begin(10, 11, 12, 13)) print(F("Found disk on port: "), false);  //SS, DI, DO, CLK
-  else print(F("Cannot find disk on port: "), false);
+  if (SD.begin(10, 11, 12, 13)) {  //SS, DI, DO, CLK
+    dirMake(sysDir);               //Creates system folder
+    print(F("Found disk on port: "), false);
+  } else print(F("Cannot find disk on port: "), false);
   print(10, true);  //SS
 
   int start = millis();  //Extended memory reset
-  removeFile(ramFile);
-  File ram = openFile(ramFile, FILE_WRITE);
+  fileRemove(ramFile);
+  File ram = fileOpen(ramFile, FILE_WRITE);
   for (uint32_t i = 0; i < ramSize * 1024; i++) ram.print(char(0));  //Ram file reset (fill with 0)
   int end = millis();
   if (ram) {
@@ -160,7 +164,7 @@ void setup() {
   } else print(F("Cannot load extended memory driver"), true);
   ram.close();
 
-  set(setFile, "");  //Carica le impostazioni di sistema all'avvio
+  set("load", "1");  //Loads settings with screen refresh
   while (on) cmd();  //Loads the command-line GUI
 }
 

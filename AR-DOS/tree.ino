@@ -3,7 +3,7 @@ int fileFound, dirFound;
 void tree() {
   fileFound = 0;
   dirFound = 0;
-  printDirectory(openFile(currentPath), 0);
+  printDirectory(fileOpen(currentPath), 0);
   print(F("\nDisplayed "), false);
   print(dirFound, false);
   print(F(" dir(s) and "), false);

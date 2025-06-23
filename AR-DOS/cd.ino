@@ -1,23 +1,12 @@
 void cd(String dir) {
-  File file;
-  dir.replace('\\', '/');  //Replaces slashes
-  switch (dir.charAt(0)) { //Checks what action sould it do
-    default:
-      file = openFile(currentPath + "/" + dir);
-      if (file.isDirectory()) {
-        currentPath += "/" + String(file.name());
-      }
-      break;
-    case '/':
-      file = openFile(dir);
-      if (file.isDirectory()) {
-        currentPath = dir;
-      }
-      break;
-    case '.':
-      while (!currentPath.endsWith("/")) currentPath.remove(currentPath.length() - 1);  //Removes the last folder
-      if (currentPath != rootDir) currentPath.remove(currentPath.length() - 1);         //Removes also the slash, only when it's not the root
-      break;
+  dir = formatPath(dir);
+
+  if (dir.charAt(1) == ':') {  //Complete path
+    if (fileOpen(dir).isDirectory()) currentPath = dir;
+  } else if (dir.substring(0, 2) == "..") {                                           //Previous folder
+    while (!currentPath.endsWith("/")) currentPath.remove(currentPath.length() - 1);  //Removes the last folder unless it is the root
+    if (currentPath != rootDir) currentPath.remove(currentPath.length() - 1);         //Also removes the slash unless its the root
+  } else {                                                                            //Current path
+    if (fileOpen(currentPath + "/" + dir).isDirectory()) currentPath += "/" + dir;
   }
-  file.close();
 }

@@ -40,19 +40,19 @@ void printChar(char data) {
   if (data == '\n') {
     print(true);
     return;
-  } else screenBuffer[tft.getCursorX() / 6][tft.getCursorY() / 8] = data;
+  } else textBuffer[tft.getCursorX() / 6][tft.getCursorY() / 8] = data;
   if (tft.getCursorY() >= 240) scroll();
   tft.print(data);
   printed = true;
 }
 
 void printDir(String data) {
-  for (int charCount = 0; charCount < data.length(); charCount++) {
+  print(data.substring(0, 2), false);                                    //Prints the disk letter
+  if (data.charAt(2) != '/') print('\\', false);                         //If the path is root (so there is no slash after), prints a slash (to match MS-DOS)
+  for (uint8_t charCount = 2; charCount < data.length(); charCount++) {  //The first char is the disk, so it starts at 1
     char currentChar = data.charAt(charCount);
-    if (currentChar == '/') {
-      while (data.charAt(charCount + 1) == '/') charCount++;  //Ignores any other slash (the SD lib already does that)
-      print('\\', false);                                     //To match MS-DOS
-    } else print(currentChar, false);
+    if (currentChar == '/') print('\\', false);  //To match MS-DOS
+    else print(currentChar, false);
   }
 }
 
@@ -67,4 +67,14 @@ void printHex(File dir, uint8_t i) {
 
   dir.print(char(hextol(inputFrag[i].substring(0, 2))));  //Converte la prima sezione in una stringa C, converte da esadecimale a decimale, converte in un carattere e lo stampa
   dir.print(char(hextol(inputFrag[i].substring(2, 4))));  //Converte la seconda sezione in una stringa C, converte da esadecimale a decimale, converte in un carattere e lo stampa
+}
+
+void printBuffer() {
+  uint16_t cursorY = tft.getCursorY(), cursorX = tft.getCursorX(), textBufferCountX, textBufferCountY;
+  for (textBufferCountY = 0; textBufferCountY < charY; textBufferCountY++) {                                                            //For each line on the screen...
+    tft.setCursor(0, textBufferCountY * 8);                                                                                              //Set cursor at the start of the line to write
+    tft.fillRect(0, textBufferCountY * 8, 320, 8, colorBack);                                                                            //Clears the line with the background color
+    for (textBufferCountX = 0; textBufferCountX < charX; textBufferCountX++) tft.print(textBuffer[textBufferCountX][textBufferCountY]);  //For each char in the buffer, write that char
+  }
+  tft.setCursor(cursorX, cursorY);
 }

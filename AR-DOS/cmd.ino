@@ -2,8 +2,6 @@ bool loadedGui = false;
 
 void cmd() {
   if (loadedGui) {
-
-    print(diskSel + ":", false);
     printDir(currentPath);
     print(F(">"), false);
 
@@ -24,7 +22,7 @@ void cmd() {
     while (!enter) {  //Input
 
       char keyPressed = pad.getKey();
-      if (keyPressed) tone(audioPin, audioHz, 100);  //BEEP
+      if (keyPressed) tone(speakerPin, speakerHz, 100);  //BEEP
 
       switch (keyPressed) {
         default:  //Printable chars //Need to fix text warp bug
@@ -157,7 +155,7 @@ void cmd() {
     }
 
     inputLast = inputSaved;
-    frag(3);
+    frag(parameters);
     inputFrag[0].toUpperCase();
 
     printed = false;
@@ -167,8 +165,9 @@ void cmd() {
     else if (inputFrag[0] == "CD") cd(inputFrag[1]);
     else if (inputFrag[0] == "RUN") run(inputFrag[1]);
     else if (inputFrag[0] == "MAKE") make(inputFrag[1]);
+    else if (inputFrag[0] == "MD") md(inputFrag[1]);
     else if (inputFrag[0] == "EDIT") edit(inputFrag[1], inputFrag[2]);
-    else if (inputFrag[0] == "READ") read(inputFrag[1]);
+    else if (inputFrag[0] == "READ") type(inputFrag[1]);
     else if (inputFrag[0] == "DEL") del(inputFrag[1]);
     else if (inputFrag[0] == "TREE") tree();
     else if (inputFrag[0] == "CLS") cls();
@@ -176,16 +175,15 @@ void cmd() {
     else if (inputFrag[0] == "SET") set(inputFrag[1], inputFrag[2]);
     else if (inputFrag[0] == "DBG") dbg();
     else if (inputFrag[0] == "EXIT") exit();
-    else if (inputFrag[0] == "")
-      ;
-    else print(F("Command not found"), false);
+    else if (inputFrag[0] != "") print(F("Bad command or file name"), false);
 
-    if (inputFrag[0] != "")
+    if (inputFrag[0] != "") {
       if (printed) print('\n', true);
       else print(true);
+    }
 
   } else {
-    tone(audioPin, audioHz, 250);
+    tone(speakerPin, speakerHz, 250);
     print(F("\nAR-DOS 1.1\n"), true);  //Name and version
     loadedGui = true;
   }

@@ -1,32 +1,33 @@
-void set(String setting, String par2) { //Not working correctly
-  char currentChar;
-  int currentPos;
+void set(String setting, String par2) {
+  if (setting == "load") {                      //Loads settings
+    File settings = fileOpen(setFile, FILE_WRITE);  //Opens settings file. Creates the file if not existant
+    while (fileAvailable(settings)) {           //Reads all content of file
 
-  if (!loadedGui) {
-    File settings = openFile(setFile, O_READ);
-    while (settings.available()) {
-      inputSaved = "";
+      inputSaved = fileReadLine(settings);  //Reads line by line (or setting by setting)
+      frag(parameters);                     //Fragments the saved string in parameters
 
-      while ((currentChar = settings.read()) != '\n' && settings.available()) inputSaved += currentChar;  //salva il carattere alla fine di "inputSaved"
-      if (currentChar != '\n') inputSaved += currentChar;                                                 //non so perche funziona, ma serve pk lultimo carattere del file non viene salvato...
-      inputSaved.trim();                                                                                  //leva ogni '\n' che c'è dalla riga (spero)
-      frag(parameters);                                                                                   //frammenta la riga
-
-      if (inputFrag[0] == "audioHz") audioHz = inputFrag[1].toInt();
-      if (inputFrag[0] == "CLS" && inputFrag[1] == "1") cls();
+      if (inputFrag[0] == "speakerHz") speakerHz = inputFrag[1].toInt();
+      else if (inputFrag[0] == "speakerPin") speakerPin = inputFrag[1].toInt();
+      else if (inputFrag[0] == "clearBoot") cls();
+      else if (inputFrag[0] == "screenRefresh") par2 = "1"; //Enables the screen refresh parameter (NEEDS TO BE LAST)
     }
+
     settings.close();
-  } else {
+
+    if (par2 == "1") printBuffer(); //Screen refresh
+  }
+
+  /* else { Does not work currently, might as well not compile it
     if (setting == "reset") {
       del(setFile);
       print(true);
       make(setFile);
       print(true);
-      edit(setFile, "audioHz 2000\ntest testing\nCLS 1\ntest2 testing2");
+      edit(setFile, "speakerHz 2000\ntest testing\nCLS 1\ntest2 testing2");
       return;
     }
 
-    File settings = openFile(setFile, FILE_WRITE);
+    File settings = fileOpen(setFile, FILE_WRITE);
     error(0, F("Searching"), setting, true);
 
     while (settings.available()) {
@@ -59,5 +60,5 @@ void set(String setting, String par2) { //Not working correctly
     settings.print(F(" "));
     settings.print(par2);
     settings.close();
-  }
+  } */
 }
