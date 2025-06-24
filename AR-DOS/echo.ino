@@ -1,3 +1,3 @@
 void echo(String data) {
-  print(data, false);
+  print(data);
 }

@@ -4,23 +4,15 @@
 #include <Elegoo_TFTLCD.h>
 Elegoo_TFTLCD tft(A3, A2, A1, A0, A4);
 
-#define BLACK 0x0000
-#define WHITE 0xFFFF
+uint16_t colorText = 0xFFFF, colorBack = 0x0000;  //White //Black
 
-int colorText = WHITE;
-int colorBack = BLACK;
-
-const uint8_t charX = 52;                 //Counting the 0
-const uint8_t charY = 29;                 //Counting the 0
-char textBuffer[charX + 1][charY + 1];  //Definition doesn't count the 0, so add 1
-bool bg = false;
-bool invert = false;
+const uint8_t charX = 52, charY = 29;   //Amount of chars that the screen can display on the X (counting the 0) //Same for Y
+char textBuffer[charX + 1][charY + 1];  //Screen buffer saves every text on the screen (declaring doesn't count the 0, so add 1 to x and y)
 
 //SD----------------------------------------------------------------------
 
 #include <SPI.h>
 #include <SD.h>
-
 
 const String sysDisk = "C:";  //System disk
 String diskSel = sysDisk;     //Current disk
@@ -41,16 +33,14 @@ const uint8_t regSize = 2;  //In bytes
 
 #include <Keypad.h>
 
-const uint8_t ROWS = 4;
-const uint8_t COLS = 4;
+const uint8_t ROWS = 4, COLS = 4;
 
 char keys[ROWS][COLS] = { { '1', '2', '3', 'A' },
                           { '4', '5', '6', 'B' },
                           { '7', '8', '9', 'C' },
                           { '*', '0', '#', 'D' } };
 
-const uint8_t rowPins[ROWS] = { 22, 24, 26, 28 };
-const uint8_t colPins[COLS] = { 23, 25, 27, 29 };
+const uint8_t rowPins[ROWS] = { 22, 24, 26, 28 }, colPins[COLS] = { 23, 25, 27, 29 };
 
 Keypad pad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
@@ -76,8 +66,8 @@ char keyShift[10][4] = { { '\\', ';', ':', '=' },  //Shift mode
                          { 'V', 'W', 'X', '(' },
                          { 'Y', 'Z', '?', ')' } };
 
-const uint8_t parameters = 4;              //Available commands parameters (Variable in future release)
-String inputSaved, inputFrag[parameters];  //Raw input from command line //Fragmented raw input in parameters
+const uint8_t parameters = 4;              //Available commands parameters (Variable in future release (maybe))
+String inputSaved, inputLast, inputFrag[parameters];  //Raw input from command line //Fragmented raw input in parameters
 
 //AUDIO----------------------------------------------------------------------
 
@@ -86,9 +76,7 @@ uint16_t speakerHz = 400;
 
 //OS------------------------------------------------------------------------
 
-bool on = false;
-bool printed = false;  //Public for cmd() and printChar()
-bool found;            //Compiler checks if the instruction exists //Public for cmp() and instToChar()
+bool on, printed = false, found = false;
 
 //START---------------------------------------------------------------------
 
@@ -99,10 +87,11 @@ void setup() {
   uint16_t ID = tft.readID();
   if (ID) {
     tft.begin(ID);
-    tft.setRotation(3);  //Landscape mode
+    tft.setRotation(3);      //Landscape mode
+    tft.setTextWrap(false);  //Text overflows (I will add warp to my print API)
     cls();
-    print(F("Found display with ID: 0x"), false);
-    print(ID, 16, true);
+    print(F("Found display with ID: 0x"));
+    println(ID, 16);
   } else Serial.println(F("Cannot find display"));
 
   /* Not needed, speaker pin is constant (maybe will change in the future)
@@ -125,9 +114,9 @@ void setup() {
   pinMode(speakerPin, INPUT_PULLUP);  //To check if the pin is connected to ground, aka there's a device
   if (!digitalRead(speakerPin)) {     //1 if it's not connected, 0 if it is connected, so it needs to be inverted
     tone(speakerPin, speakerHz, 1000);
-    print(F("Found speaker on port: "), false);
-  } else print(F("Cannot find speaker on port: "), false);
-  print(speakerPin, true);
+    print(F("Found speaker on port: "));
+  } else print(F("Cannot find speaker on port: "));
+  println(speakerPin);
 
   /* Not needed, only for GUI
   print(F("Loaded keypad driver connected to ports: "), true);
@@ -146,9 +135,9 @@ void setup() {
 
   if (SD.begin(10, 11, 12, 13)) {  //SS, DI, DO, CLK
     dirMake(sysDir);               //Creates system folder
-    print(F("Found disk on port: "), false);
-  } else print(F("Cannot find disk on port: "), false);
-  print(10, true);  //SS
+    print(F("Found disk on port: "));
+  } else print(F("Cannot find disk on port: "));
+  println(10);  //SS
 
   int start = millis();  //Extended memory reset
   fileRemove(ramFile);
@@ -156,16 +145,20 @@ void setup() {
   for (uint32_t i = 0; i < ramSize * 1024; i++) ram.print(char(0));  //Ram file reset (fill with 0)
   int end = millis();
   if (ram) {
-    print(F("Loaded "), false);
-    print(ramSize, false);
-    print(F("KB of extended memory in "), false);
-    print(end - start, false);
-    print(F(" ms"), true);
-  } else print(F("Cannot load extended memory driver"), true);
+    print(F("Loaded "));
+    print(ramSize);
+    print(F("KB of extended memory in "));
+    print(end - start);
+    println(F(" ms"));
+  } else println(F("Cannot load extended memory driver"));
   ram.close();
 
-  set("load", "1");  //Loads settings with screen refresh
+  set("load", "");  //Loads settings with screen refresh
+
+  tone(speakerPin, speakerHz, 250);
+  println(F("\nAR-DOS 1.1\n"));  //Name and version
+
   while (on) cmd();  //Loads the command-line GUI
 }
 
-void loop() {}
+void loop() {}  //SULAS

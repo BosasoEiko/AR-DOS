@@ -4,11 +4,11 @@ void tree() {
   fileFound = 0;
   dirFound = 0;
   printDirectory(fileOpen(currentPath), 0);
-  print(F("\nDisplayed "), false);
-  print(dirFound, false);
-  print(F(" dir(s) and "), false);
-  print(fileFound, false);
-  print(F(" file(s)"), false);
+  print(F("\nDisplayed "));
+  print(dirFound);
+  print(F(" dir(s) and "));
+  print(fileFound);
+  print(F(" file(s)"));
 }
 
 void printDirectory(File dir, uint8_t numTabs) {
@@ -16,16 +16,16 @@ void printDirectory(File dir, uint8_t numTabs) {
   while (1) {
     File entry = dir.openNextFile();
     if (!entry) break;
-    for (uint8_t i = 0; i < numTabs; i++) print(F("  "), false);
-    print(entry.name(), false);
+    for (uint8_t i = 0; i < numTabs; i++) print(F("  "));
+    print(entry.name());
     if (entry.isDirectory()) {
       dirFound++;
-      print(F("\\"), true);
+      println(F("\\"));
       printDirectory(entry, numTabs + 1);
     } else {
       fileFound++;
-      print(F("  "), false);
-      print(entry.size(), 10, true);
+      print(F("  "));
+      println(entry.size(), 10);
     }
     entry.close();
   }

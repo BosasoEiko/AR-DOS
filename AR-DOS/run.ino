@@ -22,8 +22,7 @@ void run(String filePar) {
     switch (hextol(inputFrag[0])) {
       default:  //ERR
 
-        print('\n', true);
-        error(-1, "", "", false);
+        println('\n');
         executing = false;
         break;
 
@@ -119,25 +118,21 @@ void run(String filePar) {
         }
         char1 = file.read();
         char2 = file.read();
-        bg = hextol(inputFrag[2]);
-        for (uint16_t i = 0; i < hextol(ltohex(char1) + ltohex(char2)) && file.available(); i++) print(char(file.read()), false);
+        for (uint16_t i = 0; i < hextol(ltohex(char1) + ltohex(char2)) && file.available(); i++) print(char(file.read()), hextol(inputFrag[2]), false);
         file.seek(progPos);
         break;
 
       case 14:  //WRT_I i1 b2
-        bg = hextol(inputFrag[2]);
-        print(hextol(inputFrag[1]), false);
+        print(hextol(inputFrag[1]), hextol(inputFrag[2]), false);
         break;
 
       case 15:  //WRT_R r1 b2
         inputFrag[1] = readHexFrom16(ram, hextol(inputFrag[1]));
-        bg = hextol(inputFrag[2]);
-        print(hextol(inputFrag[1]), false);
+        print(hextol(inputFrag[1]), hextol(inputFrag[2]), false);
         break;
 
       case 255:  //END
-        print('\n', true);
-        error(1, F("Executed"), filePar, false);
+        println('\n');
         executing = false;
         break;
     }
@@ -145,7 +140,6 @@ void run(String filePar) {
     if (Serial.available() > 0) break; //Se riceve qualcosa dalla console, chiude il programma
   }
 
-  bg = false;
   ram.close();
   file.close();
 }
