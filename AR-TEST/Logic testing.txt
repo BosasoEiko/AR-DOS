@@ -1,0 +1,22 @@
+getCursorX = 6
+getCursorY = 8
+
+xDelta = -4
+yDelta = 0
+
+charWidth = 6
+charHeight = 8
+
+
+float x = tft.getCursorX() + xDelta * charWidth, y = tft.getCursorY() + yDelta * charWidth;
+int16_t yWarp = floor(x / tft.width());
+
+x -= yWarp * tft.width();
+
+x = 6 + -4 * 6, y = 8 + 0 * 8;
+x = -18, y = 8
+int16_t yWarp = floor(-18 / 320);
+
+yWarp = -1.00
+
+x = x + 320;

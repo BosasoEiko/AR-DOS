@@ -1,0 +1,81 @@
+#Max COMPILED file size is 2 GB
+#The compiler will replace the names of the functions with the position on the file, saved in a 32 bit hex number
+
+#Data types:
+#u8: 1, i8: 2, f8: 3, u16: 4, i16: 5, f16: 6, u32: 7, i32: 8, f32: 9
+#str[]: 10, str: 11, fn: 12
+
+#u8: unsigned 8 bit integer, i8: signed 8 bit integer, f8: signed 8 bit float ...
+
+#The compiler will mark this test program as an 8 bit exe, because is the biggest variable found in the code
+
+#The memory of every program starts with 1 KB of stack memory (128 layers)
+#The first layer will count 4 bytes for the current position in the program and 4 bytes for the total used memory
+
+u8 global_var = 42 	#This is a global variable, meaning it's stored in the public memory space (not connected to a layer on the stack)
+					#The variables will be saved in memory as 1 byte for the type and the next bytes for the actual value
+
+fn main (u8 argc, str[] argv[]) {
+	u8 local_var = argc #This is a local variable, meaning it's stored in the memory space (defined by the stack in "local memory used") of the current function
+	
+	if (local_var > 1) { #This is a function, and it will use stack space. Any variable defined in this function is considered local, and will be removed after the execution
+		global_var = 69
+	}
+	
+	for (u8 i = 0, i < global_var, i += 1) { 	#This is also a function, but every time it executes, any variable defined in the function will be removed after every iteration
+		u8 j = 13 								#This variable will be removed after every iteration
+		println(i)
+	}
+	
+	#This is how the compiler "sees" the for() function
+	#for (u8 i = 0) { 	#This variable will only be deleted after the execution of the while() loop
+	#	while (i < global_var) {
+	#		u8 j = 13 	#This variable will be removed after every iteration of the loop
+	#		println(i)
+	#		i += 1
+	#	}
+	#}	
+	
+	str[6] static_string = "Cinzia"	#Static strings have a defined size (not counting the null 8 bit address (0x00))
+	
+	str[1] char = "C" #Static strings with a size of 1 will be considered as chars, using only one byte, without a null pointer
+	
+	str[] static_undefined_string = "Bomboklat!" 	#Static undefined strings don't have a defined size
+													#It will be given the size of the string ONLY if the string is saved when the variable is declared, otherwise it will only save the null char
+	
+	str[] static_undefined_string_array[2][2] = 	"Hello ", "World!"; #Arrays of static strings can have the size of the strings undefined
+													"Ciao ", "Mondo!" 	#Arrays will be saved with a 4 byte pointer at the start for every element, and then the actual elements
+										
+	str[] static_undefined_string_undefined_array[][] = "Salve ", "Gente!"; 	#Arrays without a defined array size will have the size defined by the saved array at the time of declaration
+														"Hello ", "People!";	#In this case, the array size will be [2][3]
+														"Bonjour ", "Dudes!"	#It works also with 1 dimentional arrays, like the arguments of the main()
+														
+	str dynamic_string = "Sulas!"	#Dynamic strings are stored as 5 bytes per char, the first for the actual char, and the next 4 for the address of the next char
+									#The last char will have a null 32 bit address (0x00000000) to indicate the end of the string
+									#I don't think they are a good idea. They use a lot of memory and are very slow to use
+									
+	str special_string = "It\t\thas\\special\nchars\tsupport!"
+	
+	custom(static_string) #A call of a function will save the current position of the code and allocate 32 bit counter for the local memory usage in the last place of the stack (push)
+	
+	if (argv[1] == "STOP") {
+		stop_execution()
+	}
+	
+	cursor(CURSOR_X + 6, CURSOR_Y + 9) 	#It's a system function that changes the program's cursor position (if in text mode)
+										#CURSOR_X and CURSOR_Y are system variables that saves the current cursor position, starting from top left of the program window
+	
+	custom(dynamic_string)
+}
+
+fn custom (str string) {
+	if (global_var == 69) {
+		return #Stops the execution of the functions, returns to the last position saved on the stack and then removes it and returns to the last address (total memory usage -= local memory usage) (pop)
+	}
+	print("Custom function   :		")
+	print(string)
+} #For the compiler the '}' acts the same as return, except for the for() function
+
+fn stop_execution () {
+	stop #Ends the execution of the entire program
+}
