@@ -1,52 +1,35 @@
-void fileReplace(String searchFilePath, String replaceFilePath, String searchString, String replaceString, bool strict) {
-  uint32_t posStart = 0, posEnd = 0, searchStringLength = searchString.length();
-  String searcher = "", foundString = "";
-
-  if (searchFilePath == replaceFilePath) {
-    replaceFilePath.remove((SD.open(searchFilePath.c_str())).name());
-    replaceFilePath += "1.TMP";
-    File searchFileTemp = SD.open(searchFilePath.c_str(), FILE_WRITE), replaceFileTemp = SD.open(replaceFilePath.c_str(), FILE_WRITE);
-    fileCopy(searchFileTemp, replaceFileTemp, -1, -1);
-    searchFileTemp.close();
-    replaceFileTemp.close();
-    SD.remove(searchFilePath.c_str());
-
-    String temp = searchFilePath;
-    searchFilePath = replaceFilePath;
-    replaceFilePath = temp;
-  }
-
-  File searchFile = SD.open(searchFilePath.c_str()), replaceFile = SD.open(replaceFilePath.c_str(), FILE_WRITE);
-
-  if (strict) searchStringLength += 2;
+void fileReplace(File searchFile, File replaceFile, String searchString, String replaceString, bool strict, bool sensitive) {
+  uint32_t posStart = 0, posEnd = 0;
+  String foundString = "";
 
   while (searchFile.available()) {
-    searcher += char(searchFile.read());
-    Serial.print("Searcher: ");
-    Serial.println(searcher);
-    if (searcher.length() > searchStringLength) searcher = searcher.substring(1);
-    foundString = searcher;
-    if (strict) foundString.trim();
+    foundString += char(searchFile.read());
+    if (foundString.length() > searchString.length()) foundString = foundString.substring(1);
+    Serial.print("Previous: ");
+    Serial.write(filePeek(searchFile, searchFile.position() - foundString.length() - 1));
+    Serial.print("; Searching: ");
+    Serial.print(foundString);
+    Serial.print("; Next: ");
+    Serial.write(filePeek(searchFile, searchFile.position()));
+    Serial.println(";");
 
-    if (foundString == searchString) {
-      Serial.print("Found: ");
+
+    if (((sensitive && foundString.equals(searchString)) || (!sensitive && foundString.equalsIgnoreCase(searchString))) && ((strict && !isChar(filePeek(searchFile, searchFile.position() - foundString.length() - 1)) && !isChar(filePeek(searchFile, searchFile.position()))) || !strict)) {  //help
+      Serial.print("FOUND: ");
       Serial.println(foundString);
       posEnd = searchFile.position();
       searchFile.seek(posStart);
-      fileCopy(searchFile, replaceFile, -1, posEnd - searchStringLength);
+      fileCopy(searchFile, replaceFile, -1, posEnd - searchString.length());
       replaceFile.print(replaceString);
       searchFile.seek(posEnd);
-      searcher = "";
-    }    
+      foundString = "";
+    }
   }
 
   fileCopy(searchFile, replaceFile, -1, -1);
-
-  searchFile.close();
-  replaceFile.close();
 }
 
-void fileCopy(File& source, File& destination, uint8_t bufferSize, uint32_t until) {//Set until to -1 to copy the whole file, and bufferSize to -1 to use the whole buffer
+void fileCopy(File source, File destination, uint8_t bufferSize, uint32_t until) {  //Set until to -1 to copy the whole file, and bufferSize to -1 to use the whole buffer
   Serial.println("Copying...  ");
   Serial.println(source.position());
   Serial.println(destination.position());
@@ -60,4 +43,14 @@ void fileCopy(File& source, File& destination, uint8_t bufferSize, uint32_t unti
     }
   }
   Serial.println("Finished copying!");
+}
+
+int16_t filePeek(File file, uint32_t pos) {
+  if (pos < file.size()) {
+    uint32_t currentPos = file.position();
+    file.seek(pos);
+    int16_t read = file.read();
+    file.seek(currentPos);
+    return read;
+  } else return -1;
 }

@@ -64,21 +64,24 @@ void compile(String sourcePath, String exePath) {
   exe.close();
 }
 
+
+
 void setup() {
   Serial.begin(115200);
   SD.begin(10, 11, 12, 13);
+
+  Serial.println("\n\nStarting program!");
   uint32_t start = millis();
 
   //compile("/USERS/PROGRAMS/TEST.CMM", "/USERS/PROGRAMS/TEST.EXE");
-
-  //test();
-
+  
   SD.remove("/USERS/PROGRAMS/TESTCOPY.TXT");
-  fileReplace("/USERS/PROGRAMS/TEST.TXT", "/USERS/PROGRAMS/TESTCOPY.TXT", "test", "not-test", true);
+  File source = SD.open("/USERS/PROGRAMS/TEST.TXT"), destination = SD.open("/USERS/PROGRAMS/TESTCOPY.TXT", FILE_WRITE);
+  fileReplace(source, destination, "test", "not-test", false, false);
 
   File copy = SD.open("/USERS/PROGRAMS/TESTCOPY.TXT");
   Serial.println('\n');
-  while (copy.available()) Serial.print(char(copy.read()));
+  while (copy.available()) Serial.write(copy.read());
   copy.close();
 
   uint32_t end = millis();
