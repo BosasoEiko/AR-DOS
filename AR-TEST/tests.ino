@@ -65,3 +65,16 @@ void fileTests() {
     file2.close();
   }
 }
+
+void testReplace() {
+  SD.remove("TEST");
+  File file = SD.open("TEST", FILE_WRITE);
+  file.print("First test");
+  file.seek(0);
+  while (file.available()) Serial.write(file.read());
+  Serial.println();
+  SD.remove("TEST");
+  file.print("Second test");
+  while (file.available()) Serial.write(file.read());
+  file.close();
+}
